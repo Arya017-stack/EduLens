@@ -6,7 +6,7 @@ import DiagnosticDashboard from "./DiagnosticDashboard";
 import TutorView from "./TutorView";
 import ProgressReport from "./ProgressReport";
 import { AssessmentOutput, DiagnosticOutput, TutorLessonOutput, ProgressEvalOutput } from "@/lib/schemas";
-import { Sparkles, RotateCcw } from "lucide-react";
+import { RotateCcw, AlertCircle } from "lucide-react";
 
 type FlowState = "SETUP" | "QUIZ_INITIAL" | "DIAGNOSTICS" | "TUTOR" | "QUIZ_RETEST" | "PROGRESS";
 
@@ -18,17 +18,17 @@ export default function AppOrchestrator() {
   const [topic, setTopic] = useState<string>("");
   const [language, setLanguage] = useState<string>("English");
   const [grade, setGrade] = useState<string>("");
-  
+
   const [initialAssessment, setInitialAssessment] = useState<AssessmentOutput | null>(null);
   const [initialResponses, setInitialResponses] = useState<any[] | null>(null);
   const [diagnosticReport, setDiagnosticReport] = useState<DiagnosticOutput | null>(null);
-  
+
   const [tutorLesson, setTutorLesson] = useState<TutorLessonOutput | null>(null);
   const [isGeneratingTutor, setIsGeneratingTutor] = useState(false);
-  
+
   const [retestAssessment, setRetestAssessment] = useState<AssessmentOutput | null>(null);
   const [isGeneratingRetest, setIsGeneratingRetest] = useState(false);
-  
+
   const [progressReport, setProgressReport] = useState<ProgressEvalOutput | null>(null);
 
   const handleGenerateAssessment = async (data: any) => {
@@ -65,7 +65,7 @@ export default function AppOrchestrator() {
         body: JSON.stringify({
           topic,
           student_quiz_data: responses,
-          assessment_json: initialAssessment
+          assessment_json: initialAssessment,
         }),
       });
       if (!res.ok) throw new Error(await res.text());
@@ -90,7 +90,7 @@ export default function AppOrchestrator() {
           regional_language: language,
           grade_level: grade,
           gap_json: diagnosticReport,
-          learning_path: diagnosticReport?.learning_path || []
+          learning_path: diagnosticReport?.learning_path || [],
         }),
       });
       if (!res.ok) throw new Error(await res.text());
@@ -114,7 +114,7 @@ export default function AppOrchestrator() {
         body: JSON.stringify({
           gap_json: diagnosticReport,
           previous_assessment: initialAssessment,
-          num_questions: 7
+          num_questions: 7,
         }),
       });
       if (!res.ok) throw new Error(await res.text());
@@ -140,7 +140,7 @@ export default function AppOrchestrator() {
           initial_responses: initialResponses,
           retest_assessment: retestAssessment,
           retest_responses: responses,
-          gap_json: diagnosticReport
+          gap_json: diagnosticReport,
         }),
       });
       if (!res.ok) throw new Error(await res.text());
@@ -162,48 +162,27 @@ export default function AppOrchestrator() {
     setTutorLesson(null);
     setRetestAssessment(null);
     setProgressReport(null);
+    setError(null);
   };
 
   return (
-    <div className="page-container" style={{ position: "relative", zIndex: 1 }}>
-      <header style={{ 
-        display: "flex", 
-        justifyContent: "space-between", 
-        alignItems: "center", 
-        marginBottom: "4rem",
-        padding: "1.5rem 2.5rem",
-        background: "rgba(20, 20, 22, 0.4)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        borderRadius: "var(--radius-full)",
-        border: "1px solid var(--border)",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.2)"
-      }}>
-        <h1 className="gradient-text" style={{ fontSize: "1.5rem", fontWeight: "bold", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0 }}>
-          <Sparkles className="gradient-text-alt" size={24} /> CSRBox Adaptive Learning
+    <div className="page-container">
+      <header className="masthead">
+        <h1>
+          <span className="masthead-mark">CS</span>
+          CSRBox Adaptive Learning
         </h1>
         {flow !== "SETUP" && (
-          <button onClick={resetFlow} className="btn btn-outline" style={{ padding: "0.6rem 1.2rem", fontSize: "0.95rem", borderRadius: "var(--radius-full)" }}>
-            <RotateCcw size={16} /> Start Over
+          <button onClick={resetFlow} className="btn btn-outline">
+            <RotateCcw size={16} /> Start over
           </button>
         )}
       </header>
 
       {error && (
-        <div className="animate-fade-in" style={{ 
-          background: "rgba(239, 68, 68, 0.15)", 
-          borderLeft: "4px solid var(--danger)", 
-          color: "white", 
-          padding: "1.5rem 2rem",
-          borderRadius: "var(--radius)",
-          marginBottom: "3rem",
-          display: "flex",
-          alignItems: "center",
-          gap: "1rem",
-          boxShadow: "0 4px 15px rgba(239, 68, 68, 0.2)"
-        }}>
-          <strong style={{ color: "var(--danger)", fontSize: "1.2rem" }}>Error</strong>
-          <span style={{ fontSize: "1.1rem" }}>{error}</span>
+        <div className="error-banner fade-in">
+          <AlertCircle size={20} />
+          <span>{error}</span>
         </div>
       )}
 
@@ -216,8 +195,8 @@ export default function AppOrchestrator() {
       )}
 
       {flow === "DIAGNOSTICS" && diagnosticReport && (
-        <DiagnosticDashboard 
-          report={diagnosticReport} 
+        <DiagnosticDashboard
+          report={diagnosticReport}
           onGenerateTutor={handleGenerateTutor}
           onGenerateRetest={handleGenerateRetest}
           isGeneratingTutor={isGeneratingTutor}

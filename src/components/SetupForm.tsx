@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { BookOpen, Target, GraduationCap, Globe, Layers, BookType, Sparkles } from "lucide-react";
+import { PenLine } from "lucide-react";
 
 interface SetupFormProps {
   onGenerate: (data: any) => void;
@@ -19,7 +19,7 @@ export default function SetupForm({ onGenerate, isLoading }: SetupFormProps) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: name === "num_questions" ? parseInt(value) || 5 : value,
     }));
@@ -31,79 +31,112 @@ export default function SetupForm({ onGenerate, isLoading }: SetupFormProps) {
   };
 
   return (
-    <div className="glass-panel animate-slide-up" style={{ maxWidth: "680px", margin: "0 auto" }}>
-      <div style={{ textAlign: "center", marginBottom: "3rem" }}>
-        <h2 className="gradient-text" style={{ fontSize: "2.5rem", marginBottom: "0.5rem", display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
-          <Sparkles className="gradient-text-alt" size={32} /> Diagnostic Setup
-        </h2>
-        <p style={{ color: "var(--text-secondary)", fontSize: "1.1rem" }}>Configure the parameters to generate an AI-powered assessment.</p>
-      </div>
-
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-        <div className="grid-2">
-          <div style={{ position: "relative" }}>
-            <label className="label">Subject</label>
-            <div style={{ position: "relative" }}>
-              <BookOpen size={18} style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)" }}/>
-              <input required type="text" name="subject" value={formData.subject} onChange={handleChange} className="input-field" placeholder="e.g. Mathematics" style={{ paddingLeft: "3rem" }} />
-            </div>
-          </div>
-          <div style={{ position: "relative" }}>
-            <label className="label">Topic</label>
-            <div style={{ position: "relative" }}>
-              <Target size={18} style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)" }}/>
-              <input required type="text" name="topic" value={formData.topic} onChange={handleChange} className="input-field" placeholder="e.g. Fractions" style={{ paddingLeft: "3rem" }} />
-            </div>
-          </div>
+    <div className="sheet sheet-tab fade-in" style={{ maxWidth: "640px", margin: "0 auto" }}>
+      <div className="sheet-pad-lg">
+        <div style={{ marginBottom: "2.5rem" }}>
+          <div className="eyebrow" style={{ marginBottom: "0.6rem" }}>Diagnostic intake · Form A</div>
+          <h2 style={{ fontSize: "2.1rem", marginBottom: "0.6rem" }}>Set up the assessment</h2>
+          <p style={{ maxWidth: "460px" }}>
+            Fill in the subject and level. We'll build a diagnostic quiz that finds exactly
+            where understanding breaks down, not just what score comes out.
+          </p>
         </div>
 
-        <div className="grid-2">
-          <div style={{ position: "relative" }}>
-            <label className="label">Grade Level</label>
-            <div style={{ position: "relative" }}>
-              <GraduationCap size={18} style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)" }}/>
-              <input required type="text" name="grade_level" value={formData.grade_level} onChange={handleChange} className="input-field" placeholder="e.g. Grade 5" style={{ paddingLeft: "3rem" }} />
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.9rem" }}>
+          <div className="grid-2">
+            <div>
+              <label className="field-label">Subject</label>
+              <input
+                required
+                type="text"
+                name="subject"
+                value={formData.subject}
+                onChange={handleChange}
+                className="field-input"
+                placeholder="e.g. Mathematics"
+              />
+            </div>
+            <div>
+              <label className="field-label">Topic</label>
+              <input
+                required
+                type="text"
+                name="topic"
+                value={formData.topic}
+                onChange={handleChange}
+                className="field-input"
+                placeholder="e.g. Fractions"
+              />
             </div>
           </div>
-          <div style={{ position: "relative" }}>
-            <label className="label">Curriculum</label>
-            <div style={{ position: "relative" }}>
-              <Layers size={18} style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)" }}/>
-              <input type="text" name="curriculum" value={formData.curriculum} onChange={handleChange} className="input-field" placeholder="e.g. CBSE, Common Core" style={{ paddingLeft: "3rem" }} />
-            </div>
-          </div>
-        </div>
 
-        <div className="grid-2">
-          <div style={{ position: "relative" }}>
-            <label className="label">Language</label>
-            <div style={{ position: "relative" }}>
-              <Globe size={18} style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)" }}/>
-              <input type="text" name="language" value={formData.language} onChange={handleChange} className="input-field" placeholder="e.g. English, Hindi" style={{ paddingLeft: "3rem" }} />
+          <div className="grid-2">
+            <div>
+              <label className="field-label">Grade level</label>
+              <input
+                required
+                type="text"
+                name="grade_level"
+                value={formData.grade_level}
+                onChange={handleChange}
+                className="field-input"
+                placeholder="e.g. Grade 5"
+              />
+            </div>
+            <div>
+              <label className="field-label">Curriculum</label>
+              <input
+                type="text"
+                name="curriculum"
+                value={formData.curriculum}
+                onChange={handleChange}
+                className="field-input"
+                placeholder="e.g. CBSE, Common Core"
+              />
             </div>
           </div>
-          <div style={{ position: "relative" }}>
-            <label className="label">Number of Questions</label>
-            <div style={{ position: "relative" }}>
-              <BookType size={18} style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)" }}/>
-              <input type="number" min={1} max={20} name="num_questions" value={formData.num_questions} onChange={handleChange} className="input-field" style={{ paddingLeft: "3rem" }} />
-            </div>
-          </div>
-        </div>
 
-        <div style={{ marginTop: "1rem", display: "flex", justifyContent: "center" }}>
-          <button type="submit" className={`btn btn-primary ${!isLoading ? "animate-pulse" : ""}`} disabled={isLoading} style={{ width: "100%", padding: "1.25rem", fontSize: "1.1rem" }}>
+          <div className="grid-2">
+            <div>
+              <label className="field-label">Language</label>
+              <input
+                type="text"
+                name="language"
+                value={formData.language}
+                onChange={handleChange}
+                className="field-input"
+                placeholder="e.g. English, Hindi"
+              />
+            </div>
+            <div>
+              <label className="field-label">Number of questions</label>
+              <input
+                type="number"
+                min={1}
+                max={20}
+                name="num_questions"
+                value={formData.num_questions}
+                onChange={handleChange}
+                className="field-input"
+              />
+            </div>
+          </div>
+
+          <hr className="divider-line" style={{ margin: "0.5rem 0" }} />
+
+          <button type="submit" className="btn btn-primary btn-block" disabled={isLoading}>
             {isLoading ? (
               <>
-                <div className="loading-spinner"></div>
-                Generating Knowledge Graph...
+                <span className="loading-dot" /> Building assessment…
               </>
             ) : (
-              "Generate Diagnostic Assessment"
+              <>
+                <PenLine size={18} /> Generate diagnostic assessment
+              </>
             )}
           </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }
