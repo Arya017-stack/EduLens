@@ -1,20 +1,26 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import Dashboard from "./Dashboard";
 import SetupForm from "./SetupForm";
 import QuizPlayer from "./QuizPlayer";
 import DiagnosticDashboard from "./DiagnosticDashboard";
 import TutorView from "./TutorView";
 import ProgressReport from "./ProgressReport";
 import { AssessmentOutput, DiagnosticOutput, TutorLessonOutput, ProgressEvalOutput } from "@/lib/schemas";
+import { DiagnosticRecord, HistoryStats, computeStats, loadHistory, saveRecord } from "@/lib/history";
 import { RotateCcw, AlertCircle } from "lucide-react";
 
-type FlowState = "SETUP" | "QUIZ_INITIAL" | "DIAGNOSTICS" | "TUTOR" | "QUIZ_RETEST" | "PROGRESS";
+type FlowState = "DASHBOARD" | "SETUP" | "QUIZ_INITIAL" | "DIAGNOSTICS" | "TUTOR" | "QUIZ_RETEST" | "PROGRESS";
 
 export default function AppOrchestrator() {
-  const [flow, setFlow] = useState<FlowState>("SETUP");
+  const [flow, setFlow] = useState<FlowState>("DASHBOARD");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [history, setHistory] = useState<DiagnosticRecord[]>([]);
+  const [stats, setStats] = useState<HistoryStats>(computeStats([]));
+
+  const [subject, setSubject] = useState<string>("");
   const [topic, setTopic] = useState<string>("");
   const [language, setLanguage] = useState<string>("English");
   const [grade, setGrade] = useState<string>("");
@@ -31,6 +37,29 @@ export default function AppOrchestrator() {
 
   const [progressReport, setProgressReport] = useState<ProgressEvalOutput | null>(null);
 
+  useEffect(() => {
+    const loaded = loadHistory();
+    setHistory(loaded);
+    setStats(computeStats(loaded));
+  }, []);
+
+  const recordSession = (data: {
+    topic: string;
+    subject: string;
+    grade: string;
+    overall_score: number;
+    mastery_level: string;
+  }) => {
+    const record: DiagnosticRecord = {
+      id: `${Date.now()}`,
+      date: new Date().toISOString(),
+      ...data,
+    };
+    const updated = saveRecord(record);
+    setHistory(updated);
+    setStats(computeStats(updated));
+  };
+
   const handleGenerateAssessment = async (data: any) => {
     setIsLoading(true);
     setError(null);
@@ -42,6 +71,7 @@ export default function AppOrchestrator() {
       });
       if (!res.ok) throw new Error(await res.text());
       const assessment = await res.json();
+      setSubject(data.subject);
       setTopic(data.topic);
       setLanguage(data.language || "English");
       setGrade(data.grade_level);
@@ -71,6 +101,13 @@ export default function AppOrchestrator() {
       if (!res.ok) throw new Error(await res.text());
       const report = await res.json();
       setDiagnosticReport(report);
+      recordSession({
+        topic,
+        subject,
+        grade,
+        overall_score: report.overall_score,
+        mastery_level: report.mastery_level,
+      });
       setFlow("DIAGNOSTICS");
     } catch (err: any) {
       setError(err.message || "Failed to analyze responses");
@@ -146,6 +183,13 @@ export default function AppOrchestrator() {
       if (!res.ok) throw new Error(await res.text());
       const evalReport = await res.json();
       setProgressReport(evalReport);
+      recordSession({
+        topic,
+        subject,
+        grade,
+        overall_score: evalReport.retest_weighted_score,
+        mastery_level: evalReport.ready_for_next_topic ? "Advanced" : diagnosticReport?.mastery_level ?? "Intermediate",
+      });
       setFlow("PROGRESS");
     } catch (err: any) {
       setError(err.message || "Failed to evaluate progress");
@@ -165,16 +209,37 @@ export default function AppOrchestrator() {
     setError(null);
   };
 
+  const goToDashboard = () => {
+    setFlow("DASHBOARD");
+    setError(null);
+  };
+
   return (
     <div className="page-container">
       <header className="masthead">
-        <h1>
-          <span className="masthead-mark">CS</span>
-          CSRBox Adaptive Learning
-        </h1>
-        {flow !== "SETUP" && (
-          <button onClick={resetFlow} className="btn btn-outline">
-            <RotateCcw size={16} /> Start over
+        <div style={{ display: "flex", alignItems: "center", gap: "2.5rem" }}>
+          <h1>
+            <span className="masthead-mark">EL</span>
+            EduLens
+          </h1>
+          <nav className="nav-tabs">
+            <button
+              className={`nav-tab ${flow === "DASHBOARD" ? "active" : ""}`}
+              onClick={goToDashboard}
+            >
+              Dashboard
+            </button>
+            <button
+              className={`nav-tab ${flow !== "DASHBOARD" ? "active" : ""}`}
+              onClick={() => flow === "DASHBOARD" && resetFlow()}
+            >
+              Diagnostic
+            </button>
+          </nav>
+        </div>
+        {flow !== "DASHBOARD" && (
+          <button onClick={goToDashboard} className="btn btn-outline">
+            <RotateCcw size={16} /> Dashboard
           </button>
         )}
       </header>
@@ -184,6 +249,10 @@ export default function AppOrchestrator() {
           <AlertCircle size={20} />
           <span>{error}</span>
         </div>
+      )}
+
+      {flow === "DASHBOARD" && (
+        <Dashboard history={history} stats={stats} onStartNew={resetFlow} />
       )}
 
       {flow === "SETUP" && (
@@ -213,7 +282,7 @@ export default function AppOrchestrator() {
       )}
 
       {flow === "PROGRESS" && progressReport && (
-        <ProgressReport report={progressReport} onReset={resetFlow} />
+        <ProgressReport report={progressReport} onReset={goToDashboard} />
       )}
     </div>
   );
